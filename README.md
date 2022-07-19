@@ -5,6 +5,7 @@ Console Elements
 This plugin exposes the following console elements:
 | Name | Description | Default | Notes |
 |------|------|------|------|
+| `sv_fov_min` | Minimum value players can set their FOV to. | 75.0 | None |
 | `sv_fov_max` | Maximum value players can set their FOV to. | 120.0 | None |
 | `sm_fov` | Set the calling players FOV to the specified value. | N/A | Input must be an integer or a float. |
 | `sm_fov_clear` | Clear the calling players FOV override. | N/A | None |

@@ -26,6 +26,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
+ConVar		sv_fov_min;
 ConVar		sv_fov_max;
 int			g_nFOVOverride[ MAXPLAYERS + 1 ] = { -1, ... };
 Handle		g_hCookie_FOV;
@@ -38,7 +39,7 @@ public Plugin myinfo =
 	name		= "[TF2] FOV",
 	author		= "Andrew \"andrewb\" Betson",
 	description	= "Allow players to set their FOV beyond the arbitrary limit of the fov_desired cvar.",
-	version		= "1.0.0",
+	version		= "1.0.1",
 	url			= "https://github.com/AndrewBetson/TF-FOV"
 };
 
@@ -47,8 +48,11 @@ public void OnPluginStart()
 	LoadTranslations( "common.phrases" );
 	LoadTranslations( "fov.phrases" );
 
+	sv_fov_min = CreateConVar( "sv_fov_min", "75.0", "Minimum FOV", FCVAR_NOTIFY, true, 10.0, true, 998.0 );
+	sv_fov_min.AddChangeHook( ConVar_FOV_MinMax );
+
 	sv_fov_max = CreateConVar( "sv_fov_max", "120.0", "Maximum FOV", FCVAR_NOTIFY, true, 11.0, true, 999.0 );
-	sv_fov_max.AddChangeHook( ConVar_FOV_Max );
+	sv_fov_max.AddChangeHook( ConVar_FOV_MinMax );
 
 	RegConsoleCmd( "sm_fov", Cmd_FOV, "Set calling players FOV" );
 	RegConsoleCmd( "sm_fov_clear", Cmd_FOV_Clear, "Clear calling players FOV preference" );
@@ -138,9 +142,9 @@ public Action Cmd_FOV( int nClientIdx, int nNumArgs )
 	nNewFOV = StringToInt( szSM110Hack );
 #endif // SOURCEMOD_V_MINOR == 11
 
-	if ( nNewFOV > sv_fov_max.IntValue || nNewFOV < 10 )
+	if ( nNewFOV > sv_fov_max.IntValue || nNewFOV < sv_fov_min.IntValue )
 	{
-		CReplyToCommand( nClientIdx, "%t", "FOV_MustBeWithinRange", sv_fov_max.IntValue );
+		CReplyToCommand( nClientIdx, "%t", "FOV_MustBeWithinRange", sv_fov_min.IntValue, sv_fov_max.IntValue );
 		return Plugin_Continue;
 	}
 
@@ -167,7 +171,7 @@ public Action Cmd_FOV_Clear( int nClientIdx, int nNumArgs )
 	return Plugin_Continue;
 }
 
-public void ConVar_FOV_Max( ConVar hConvar, const char[] szOldValue, const char[] szNewValue )
+public void ConVar_FOV_MinMax( ConVar hConVar, const char[] szOldValue, const char[] szNewValue )
 {
 	int nNewValue = StringToInt( szNewValue );
 
@@ -175,7 +179,7 @@ public void ConVar_FOV_Max( ConVar hConvar, const char[] szOldValue, const char[
 	{
 		if ( IsClientInGame( i ) )
 		{
-			if ( g_nFOVOverride[ i ] > nNewValue )
+			if ( ( g_nFOVOverride[ i ] > nNewValue && hConVar == sv_fov_max ) || ( g_nFOVOverride[ i ] < nNewValue && hConVar == sv_fov_min ) )
 			{
 				g_nFOVOverride[ i ] = nNewValue;
 				SetClientFOV( i );
@@ -222,6 +226,12 @@ void Frame_SetFOV( any aData )
 
 void SetClientFOV( int nClientIdx )
 {
+	int nTargetFOV = g_nFOVOverride[ nClientIdx ];
+
+	// Clamp the target FOV to the min-max range.
+	if ( nTargetFOV > sv_fov_max.IntValue )	nTargetFOV = sv_fov_max.IntValue;
+	if ( nTargetFOV < sv_fov_min.IntValue )	nTargetFOV = sv_fov_min.IntValue;
+
 	SetEntProp( nClientIdx, Prop_Send, "m_iFOV", g_nFOVOverride[ nClientIdx ] );
 	SetEntProp( nClientIdx, Prop_Send, "m_iDefaultFOV", g_nFOVOverride[ nClientIdx ] );
 }

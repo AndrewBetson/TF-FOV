@@ -12,6 +12,6 @@
 
 	"FOV_MustBeWithinRange"
 	{
-		"en"	"{orange}[FOV]{default} Parameter must be within range 10-%d"
+		"en"	"{orange}[FOV]{default} Parameter must be within range %d-%d"
 	}
 }
