@@ -39,7 +39,7 @@ public Plugin myinfo =
 	name		= "[TF2] FOV",
 	author		= "Andrew \"andrewb\" Betson",
 	description	= "Allow players to set their FOV beyond the arbitrary limit of the fov_desired cvar.",
-	version		= "1.0.1",
+	version		= "1.0.2",
 	url			= "https://github.com/AndrewBetson/TF-FOV"
 };
 
@@ -232,6 +232,6 @@ void SetClientFOV( int nClientIdx )
 	if ( nTargetFOV > sv_fov_max.IntValue )	nTargetFOV = sv_fov_max.IntValue;
 	if ( nTargetFOV < sv_fov_min.IntValue )	nTargetFOV = sv_fov_min.IntValue;
 
-	SetEntProp( nClientIdx, Prop_Send, "m_iFOV", g_nFOVOverride[ nClientIdx ] );
-	SetEntProp( nClientIdx, Prop_Send, "m_iDefaultFOV", g_nFOVOverride[ nClientIdx ] );
+	SetEntProp( nClientIdx, Prop_Send, "m_iFOV", nTargetFOV );
+	SetEntProp( nClientIdx, Prop_Send, "m_iDefaultFOV", nTargetFOV );
 }
